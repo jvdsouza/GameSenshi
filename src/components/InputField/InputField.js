@@ -31,21 +31,23 @@ const InputField = props => {
 		validating: true,
 		delay: 0,
 		timeOutID: 0,
-		focused: true,
+		focused: false,
 	})
 
 	const [spinner, showSpinner] = useState(false)
 
 	const onResize = () => {
+		// change parent component height
 		signUp.setState(state => ({
 			...state,
 			[name + EXTRA_HEIGHT]: ref.current.clientHeight,
 		}))
 	}
 	const generateErrorList = (errMessages, resolve) => {
+		let errMsg = Array.isArray(errMessages) ? errMessages : [errMessages]
 		const errorList =
 			(errMessages &&
-				errMessages.map(error => {
+				errMsg.map(error => {
 					return (
 						<Alert
 							className={'mb-1 pb-0 pt-0'}
@@ -75,7 +77,9 @@ const InputField = props => {
 					)
 				})) ||
 			[]
-		state.validating = false
+		if (!asyncValidation) {
+			state.validating = false
+		}
 		signUp.state[name + VALID] = !errMessages
 		setErrorList(errorList)
 		resolve(errMessages)
@@ -92,22 +96,24 @@ const InputField = props => {
 						signUp.state[name + VALID] = false
 						// validate after user stop typing for 500ms
 						clearTimeout(state.timeOutID)
-						// console.log(name, state.delay, state.timeOutID)
 						const timeOutID = setTimeout(() => {
 							validation(value)
-								.then(async () => {
-									showSpinner(true)
-									// server validation mock(temporary)
-									new Promise(resolve2 =>
-										setTimeout(() => {
-											resolve2()
-											generateErrorList(undefined, resolve)
+								.then(() => {
+									if (asyncValidation) {
+										showSpinner(true)
+										// verify the existence of email
+										asyncValidation().then(message => {
+											console.log(message)
+											generateErrorList(message, resolve)
+											state.validating = false
 											showSpinner(false)
-										}, 4000)
-									)
+										})
+									} else {
+										generateErrorList(undefined, resolve)
+									}
 								})
-								.catch(err => {
-									generateErrorList(err.errors, resolve)
+								.catch(result => {
+									generateErrorList(result.errors, resolve)
 								})
 						}, state.delay)
 						state.timeOutID = timeOutID
@@ -119,7 +125,6 @@ const InputField = props => {
 				const { validating } = state
 				return (
 					<>
-						{/*console.log(name, meta)*/}
 						{type !== 'checkbox' && (
 							<InputGroup
 								className={classnames({
@@ -153,7 +158,7 @@ const InputField = props => {
 									</InputGroupText>
 								</InputGroupAddon>
 								<Input
-									{...input} //name, type, onBlur, onChange, onFocus, overwrite it by creating prop after this prop
+									{...input} //name, type, onBlur, onChange, onFocus, value, overwrite it by creating prop after this prop
 									onChange={e => {
 										// why mutate state directly?
 										// because we don't want to re-render it until it is validated
@@ -184,19 +189,27 @@ const InputField = props => {
 									<Input
 										{...input}
 										onChange={e => {
-											signUp.state[name] = e.target.value
-											// ! bug, workaround https://github.com/final-form/react-final-form/issues/134
-											input.onBlur(e)
+											// ! React Final Form checkbox value is crazy, have to toggle it myself
+											// ! but the value in validation is correct, weird!
+											signUp.state[name] = !signUp.state[name]
+											// ! another bug, workaround https://github.com/final-form/react-final-form/issues/134
+											state.focused = true
+											input.onFocus(e)
 											input.onChange(e)
+											state.focused = false
+											input.onBlur(e)
 										}}
-										onFocus={e => {
+										// this event cannot be triggered
+										/*onFocus={e => {
+											console.log('focused')
 											state.focused = true
 											input.onFocus(e)
 										}}
 										onBlur={e => {
+											console.log('blured')
 											state.focused = false
 											input.onBlur(e)
-										}}
+										}}*/
 									/>
 									<span className='form-check-sign' />
 									{`I agree

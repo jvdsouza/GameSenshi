@@ -1,14 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { functions } from 'utils/firebase'
+import { handleSignUp, handleIsUserExist } from 'api'
 
 import {
 	EMAIL,
 	PASSWORD,
 	TERM,
-	EMAIL_VALID,
-	PASSWORD_VALID,
-	TERM_VALID,
 	EMAIL_EXTRA_HEIGHT,
 	PASSWORD_EXTRA_HEIGHT,
 	EMAIL_VALIDATION,
@@ -85,28 +82,10 @@ class SignUpPage extends React.Component {
 				'deg)',
 		})
 	}
-	handleSignUp = () => {
-		const {
-			state: {
-				[EMAIL]: email,
-				[PASSWORD]: password,
-				[EMAIL_VALID]: emailValid,
-				[PASSWORD_VALID]: passwordValid,
-				[TERM_VALID]: termValid,
-			},
-		} = signUp
-		if (emailValid && passwordValid && termValid) {
-			const addUser = functions.httpsCallable('signUp')
-			addUser({ email, password }).then(result => {
-				console.log(result)
-			})
-		}
-	}
 
 	render() {
 		const {
 			state: { squares7and8, squares1to6, maxHeight },
-			handleSignUp,
 		} = this
 		const {
 			state: {
@@ -162,14 +141,12 @@ class SignUpPage extends React.Component {
 													</CardBody>
 													<FinalForm
 														initialValues={{
-															email: '',
-															password: '',
-															term: false,
+															[EMAIL]: '',
+															[PASSWORD]: '',
+															[TERM]: false,
 														}}
-														onSubmit={values => {
-															console.log('test')
-														}}>
-														{({ handleSubmit, submitting, validating }) => (
+														onSubmit={values => {}}>
+														{({ handleSubmit, submitting }) => (
 															<>
 																<CardBody>
 																	<div className='btn-wrapper text-center'>
@@ -232,7 +209,9 @@ class SignUpPage extends React.Component {
 																			validation={value =>
 																				emailValidation(value)
 																			}
-																			asyncValidation={() => {}}
+																			asyncValidation={() =>
+																				handleIsUserExist(signUp.state)
+																			}
 																		/>
 																		<InputField
 																			type={PASSWORD}
@@ -262,7 +241,7 @@ class SignUpPage extends React.Component {
 																				size='lg'
 																				disabled={submitting}
 																				onClick={e => {
-																					handleSignUp()
+																					handleSignUp(signUp.state)
 																					handleSubmit(e)
 																				}}>
 																				Sign Up

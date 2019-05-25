@@ -1,5 +1,4 @@
-// in future this should turn into npm library so that backend can use the same code using absolute path
-
+// in future this should turn into npm library so that backend can use the same code
 const EMAIL = 'email'
 const PASSWORD = 'password'
 const TERM = 'term'
@@ -19,6 +18,11 @@ const VALIDATION = 'Validation'
 const EMAIL_VALIDATION = EMAIL + VALIDATION
 const PASSWORD_VALIDATION = PASSWORD + VALIDATION
 const TERM_VALIDATION = TERM + VALIDATION
+const ON = 'on'
+const IS_USER_EXIST = 'IsUserExist'
+const SIGN_UP = 'SignUp'
+const ON_SIGN_UP = ON + SIGN_UP
+const ON_IS_USER_EXIST = ON + IS_USER_EXIST
 
 export {
 	EMAIL,
@@ -38,4 +42,6 @@ export {
 	EMAIL_VALIDATION,
 	PASSWORD_VALIDATION,
 	TERM_VALIDATION,
+	ON_SIGN_UP,
+	ON_IS_USER_EXIST,
 }
